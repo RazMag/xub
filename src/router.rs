@@ -1,22 +1,21 @@
 use axum::{
     Router,
-    routing::{get, post},
-    middleware::{from_fn, Next},
-    extract::{Path, Request, FromRequestParts},
+    extract::{Form, FromRequestParts, Path, Request},
     http::StatusCode,
-    response::{IntoResponse, Response},
-    Json,
+    middleware::{Next, from_fn},
+    response::{Html, IntoResponse, Response},
+    routing::{get},
 };
-use tower_sessions::Session;
 use serde::Deserialize;
+use tower_sessions::Session;
 
 pub fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
         .route("/posts", get(posts))
-        .route("/post/{id}", get(show_post))
-        .route("/login", post(login))
-        .route("/logout", post(logout))
+        .route("/post/{id}", get(post))
+        .route("/login", get(login_page).post(login))
+        .route("/logout", get(logout))
         .route("/secret", get(secret).route_layer(from_fn(require_auth)))
 }
 
@@ -28,7 +27,7 @@ async fn posts() -> &'static str {
     "Posts index"
 }
 
-async fn show_post(Path(id): Path<String>) -> String {
+async fn post(Path(id): Path<String>) -> String {
     format!("Post {id}")
 }
 
@@ -38,7 +37,7 @@ struct LoginPayload {
     password: String,
 }
 
-async fn login(session: Session, Json(payload): Json<LoginPayload>) -> impl IntoResponse {
+async fn login(session: Session, Form(payload): Form<LoginPayload>) -> impl IntoResponse {
     let expected_user = std::env::var("LOGIN_USER").unwrap_or_else(|_| "admin".to_string());
     let expected_pass = std::env::var("LOGIN_PASS").unwrap_or_else(|_| "password".to_string());
 
@@ -57,6 +56,29 @@ async fn logout(session: Session) -> impl IntoResponse {
     (StatusCode::OK, "Logged out")
 }
 
+async fn login_page() -> Html<&'static str> {
+    // Minimal form without styling for simplicity
+    Html(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+</head>
+<body>
+    <form method="post" action="/login">
+        <h2>Login</h2>
+        <label for="username">Username</label><br />
+        <input id="username" name="username" type="text" required /><br />
+        <label for="password">Password</label><br />
+        <input id="password" name="password" type="password" required /><br />
+        <button type="submit">Sign In</button>
+    </form>
+</body>
+</html>"#,
+    )
+}
+
 async fn secret() -> &'static str {
     "Top secret content"
 }
@@ -70,7 +92,12 @@ async fn require_auth(req: Request, next: Next) -> Result<Response, StatusCode> 
         Err(_) => return Err(StatusCode::UNAUTHORIZED),
     };
 
-    let is_logged_in = session.get::<bool>("logged_in").await.ok().flatten().unwrap_or(false);
+    let is_logged_in = session
+        .get::<bool>("logged_in")
+        .await
+        .ok()
+        .flatten()
+        .unwrap_or(false);
     if is_logged_in {
         let req = Request::from_parts(parts, body);
         Ok(next.run(req).await)
