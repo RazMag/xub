@@ -8,6 +8,7 @@ use axum::{
 };
 use serde::Deserialize;
 use tower_sessions::Session;
+use crate::write::{write_page, write_submit};
 
 pub fn build_router() -> Router {
     Router::new()
@@ -16,6 +17,7 @@ pub fn build_router() -> Router {
         .route("/post/{id}", get(post))
         .route("/login", get(login_page).post(login))
         .route("/logout", get(logout))
+    .route("/write", get(write_page).post(write_submit).route_layer(from_fn(require_auth)))
         .route("/secret", get(secret).route_layer(from_fn(require_auth)))
 }
 
