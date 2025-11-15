@@ -1,8 +1,9 @@
+use crate::post::post_page;
+use crate::post_list::posts_page;
 use crate::write::{write_page, write_submit};
-use crate::posts::posts_page;
 use axum::{
     Router,
-    extract::{Form, FromRequestParts, Path, Request},
+    extract::{Form, FromRequestParts, Request},
     http::StatusCode,
     middleware::{Next, from_fn},
     response::{Html, IntoResponse, Response},
@@ -15,24 +16,18 @@ pub fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
         .route("/posts", get(posts_page))
-        .route("/post/{id}", get(post))
+        .route("/post/{id}", get(post_page))
         .route("/login", get(login_page).post(login_submit))
         .route("/logout", get(logout))
         .route(
             "/write",
-            get(write_page)
-                .post(write_submit)
-                // .route_layer(from_fn(require_auth)), //TODO add back auth
+            get(write_page).post(write_submit), // .route_layer(from_fn(require_auth)), //TODO add back auth
         )
         .route("/secret", get(secret).route_layer(from_fn(require_auth)))
 }
 
 async fn root() -> &'static str {
     "Hello from xub!"
-}
-
-async fn post(Path(id): Path<String>) -> String {
-    format!("Post {id}")
 }
 
 #[derive(Deserialize)]

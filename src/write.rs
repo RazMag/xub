@@ -4,6 +4,7 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse},
 };
+use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use tokio::{fs, io::AsyncWriteExt};
 use tower_sessions::Session;
@@ -18,6 +19,7 @@ pub struct NewPost {
 pub struct Frontmatter {
     pub title: String,
     pub date: String,
+    pub id: String,
 }
 
 pub async fn write_page() -> Html<&'static str> {
@@ -50,6 +52,7 @@ pub async fn write_submit(_session: Session, Form(payload): Form<NewPost>) -> im
     let frontmatter = Frontmatter {
         title: title.clone(),
         date: date.to_rfc3339(),
+        id: nanoid!(),
     };
     let frontmatter = serde_saphyr::to_string(&frontmatter).unwrap();
     let post = format!("---\n{}---\n{}", frontmatter, content);
