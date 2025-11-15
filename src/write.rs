@@ -51,7 +51,7 @@ pub async fn write_submit(_session: Session, Form(payload): Form<NewPost>) -> im
         title: title.clone(),
         date: date.to_rfc3339(),
     };
-    let frontmatter = serde_yaml::to_string(&frontmatter).unwrap();
+    let frontmatter = serde_saphyr::to_string(&frontmatter).unwrap();
     let post = format!("---\n{}---\n{}", frontmatter, content);
     save_post_to_file(&post).await.unwrap();
     // For now, just acknowledge creation

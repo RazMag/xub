@@ -1,4 +1,5 @@
 use crate::write::{write_page, write_submit};
+use crate::posts::posts_page;
 use axum::{
     Router,
     extract::{Form, FromRequestParts, Path, Request},
@@ -13,7 +14,7 @@ use tower_sessions::Session;
 pub fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
-        .route("/posts", get(posts))
+        .route("/posts", get(posts_page))
         .route("/post/{id}", get(post))
         .route("/login", get(login_page).post(login_submit))
         .route("/logout", get(logout))
@@ -21,17 +22,13 @@ pub fn build_router() -> Router {
             "/write",
             get(write_page)
                 .post(write_submit)
-                // .route_layer(from_fn(require_auth)), TODO add back auth
+                // .route_layer(from_fn(require_auth)), //TODO add back auth
         )
         .route("/secret", get(secret).route_layer(from_fn(require_auth)))
 }
 
 async fn root() -> &'static str {
     "Hello from xub!"
-}
-
-async fn posts() -> &'static str {
-    "Posts index"
 }
 
 async fn post(Path(id): Path<String>) -> String {
@@ -88,7 +85,7 @@ async fn login_page() -> Html<&'static str> {
 
 async fn secret() -> &'static str {
     "Top secret content"
-}
+} //TODO remove
 
 async fn require_auth(req: Request, next: Next) -> Result<Response, StatusCode> {
     let (mut parts, body) = req.into_parts();
