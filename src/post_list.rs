@@ -108,4 +108,4 @@ fn extract_title(md: &str) -> Option<String> {
     }
 
     title
-}
+} //TODO check out https://crates.io/crates/pulldown-cmark-frontmatter
