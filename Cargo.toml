@@ -14,5 +14,6 @@ tower-sessions = "0.14.0"
 chrono = "0.4.42"
 pulldown-cmark = "0.13.0"
 html-escape = "0.2"
-serde-saphyr = "0.0.7"
+serde-saphyr = "0.0.8"
 nanoid = "0.4.0"
+maud = { version = "0.27", features = ["axum"] }

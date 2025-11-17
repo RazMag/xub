@@ -3,11 +3,13 @@ use std::net::SocketAddr;
 use anyhow::Result;
 use axum::Router;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
+use tokio::net::TcpListener;
+
 mod post;
 mod post_list;
 mod router;
 mod write;
-use tokio::net::TcpListener;
+mod templates;
 
 #[tokio::main]
 async fn main() -> Result<()> {
