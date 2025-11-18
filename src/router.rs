@@ -1,12 +1,16 @@
 use crate::post::post_page;
 use crate::post_list::posts_page;
+use crate::templates::pages::{
+    home_page as home_template, login_page as login_template, logout_page as logout_template,
+    secret_page as secret_template,
+};
 use crate::write::{write_page, write_submit};
 use axum::{
     Router,
     extract::{Form, FromRequestParts, Request},
     http::StatusCode,
     middleware::{Next, from_fn},
-    response::{Html, IntoResponse, Response},
+    response::{IntoResponse, Response},
     routing::get,
 };
 use serde::Deserialize;
@@ -26,8 +30,8 @@ pub fn build_router() -> Router {
         .route("/secret", get(secret).route_layer(from_fn(require_auth)))
 }
 
-async fn root() -> &'static str {
-    "Hello from xub!"
+async fn root() -> impl IntoResponse {
+    home_template()
 }
 
 #[derive(Deserialize)]
@@ -52,34 +56,15 @@ async fn login_submit(session: Session, Form(payload): Form<LoginPayload>) -> im
 
 async fn logout(session: Session) -> impl IntoResponse {
     let _ = session.flush().await;
-    (StatusCode::OK, "Logged out")
+    logout_template()
 }
 
-async fn login_page() -> Html<&'static str> {
-    // Minimal form without styling for simplicity
-    Html(
-        r#"<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Login</title>
-</head>
-<body>
-    <form method="post" action="/login">
-        <h2>Login</h2>
-        <label for="username">Username</label><br />
-        <input id="username" name="username" type="text" required /><br />
-        <label for="password">Password</label><br />
-        <input id="password" name="password" type="password" required /><br />
-        <button type="submit">Sign In</button>
-    </form>
-</body>
-</html>"#,
-    )
+async fn login_page() -> impl IntoResponse {
+    login_template()
 }
 
-async fn secret() -> &'static str {
-    "Top secret content"
+async fn secret() -> impl IntoResponse {
+    secret_template()
 } //TODO remove
 
 async fn require_auth(req: Request, next: Next) -> Result<Response, StatusCode> {

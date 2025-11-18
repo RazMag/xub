@@ -56,7 +56,10 @@ pub async fn posts_page() -> Html<String> {
     for p in posts {
         body.push_str("<article>");
         // optional anchor with id
-        body.push_str(&format!("<a id=\"{}\"></a>", html_escape::encode_double_quoted_attribute(&p.id)));
+        body.push_str(&format!(
+            "<a id=\"{}\"></a>",
+            html_escape::encode_double_quoted_attribute(&p.id)
+        ));
         body.push_str(&format!(
             "<h2><a href=\"/post/{}\">{}</a></h2>",
             html_escape::encode_double_quoted_attribute(&p.id),
@@ -108,4 +111,4 @@ fn extract_title(md: &str) -> Option<String> {
     }
 
     title
-} 
+}

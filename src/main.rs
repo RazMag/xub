@@ -2,14 +2,14 @@ use std::net::SocketAddr;
 
 use anyhow::Result;
 use axum::Router;
-use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tokio::net::TcpListener;
+use tower_sessions::{MemoryStore, SessionManagerLayer};
 
 mod post;
 mod post_list;
 mod router;
-mod write;
 mod templates;
+mod write;
 
 #[tokio::main]
 async fn main() -> Result<()> {
