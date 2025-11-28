@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use pulldown_cmark::{html, Options, Parser};
 use tokio::fs;
 
-const POSTS_DIR: &str = "posts";
+const POSTS_DIR: &str = "./posts";
 
 #[derive(Debug, Clone)]
 pub struct Post {

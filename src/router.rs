@@ -1,5 +1,6 @@
 use crate::post::post_page;
-use crate::post_list::posts_page;
+// use crate::post_list::posts_page;
+use crate::posts;
 use crate::templates::pages;
 use crate::write::{write_handler, write_submit};
 use axum::{
@@ -13,10 +14,15 @@ use axum::{
 use serde::Deserialize;
 use tower_sessions::Session;
 
-pub fn build_router() -> Router {
+pub async fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
-        .route("/posts", get(posts_page))
+        .route(
+            "/posts",
+            get(pages::post_list_page(
+                posts::load_all_posts().await.unwrap(),
+            )),
+        )
         .route("/post/{id}", get(post_page))
         .route("/login", get(login_handler).post(login_submit))
         .route("/logout", get(logout_handler))

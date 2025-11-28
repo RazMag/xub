@@ -40,7 +40,7 @@ pub async fn write_submit(_session: Session, Form(payload): Form<NewPost>) -> im
 }
 
 async fn save_post_to_file(post: &str, id: &str) -> Result<()> {
-    let mut file = fs::File::create(&id).await?;
+    let mut file = fs::File::create(format!("./posts/{id}.md")).await?;
     file.write_all(post.as_bytes()).await?;
     Ok(())
 }
