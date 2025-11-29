@@ -6,7 +6,6 @@ use tokio::net::TcpListener;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 
 mod post;
-mod post_list;
 mod posts;
 mod router;
 mod templates;

@@ -1,8 +1,9 @@
 use crate::post::post_page;
 // use crate::post_list::posts_page;
-use crate::posts;
+use crate::posts::{self, load_post};
 use crate::templates::pages;
 use crate::write::{write_handler, write_submit};
+use axum::extract::Path;
 use axum::{
     Router,
     extract::{Form, FromRequestParts, Request},
@@ -18,7 +19,7 @@ pub async fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
         .route("/posts", get(posts_index))
-        .route("/post/{id}", get(post_page))
+        .route("/post/{id}", get(post_handler))
         .route("/login", get(login_handler).post(login_submit))
         .route("/logout", get(logout_handler))
         .route(
@@ -31,6 +32,10 @@ pub async fn build_router() -> Router {
 
 async fn root() -> impl IntoResponse {
     Redirect::to("/posts")
+}
+
+async fn post_handler(Path(id): Path<String>) -> impl IntoResponse {
+    pages::post_page(load_post(&id).await.unwrap())
 }
 
 async fn posts_index() -> Response {

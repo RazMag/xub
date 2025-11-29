@@ -4,5 +4,7 @@ pub mod login;
 pub use login::login_page;
 pub mod write;
 pub use write::write_page;
+pub mod post;
+pub use post::post_page;
 pub mod post_list;
 pub use post_list::post_list_page;
