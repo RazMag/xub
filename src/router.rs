@@ -1,5 +1,3 @@
-use crate::post::post_page;
-// use crate::post_list::posts_page;
 use crate::posts::{self, load_post};
 use crate::templates::pages;
 use crate::write::{write_handler, write_submit};
