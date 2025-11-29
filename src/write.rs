@@ -15,7 +15,7 @@ pub struct NewPost {
 #[derive(Serialize)]
 pub struct Frontmatter {
     pub title: String,
-    pub date: String,
+    pub created: String,
     pub id: String,
 }
 
@@ -30,7 +30,7 @@ pub async fn write_submit(_session: Session, Form(payload): Form<NewPost>) -> im
     let date = chrono::Utc::now();
     let frontmatter = Frontmatter {
         title: title.clone(),
-        date: date.to_rfc3339(),
+        created: date.to_rfc3339(),
         id: nanoid!(),
     };
     let frontmatter_str = serde_saphyr::to_string(&frontmatter).unwrap();

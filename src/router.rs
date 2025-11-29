@@ -17,12 +17,7 @@ use tower_sessions::Session;
 pub async fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
-        .route(
-            "/posts",
-            get(pages::post_list_page(
-                posts::load_all_posts().await.unwrap(),
-            )),
-        )
+        .route("/posts", get(posts_index))
         .route("/post/{id}", get(post_page))
         .route("/login", get(login_handler).post(login_submit))
         .route("/logout", get(logout_handler))
@@ -36,6 +31,19 @@ pub async fn build_router() -> Router {
 
 async fn root() -> impl IntoResponse {
     Redirect::to("/posts")
+}
+
+async fn posts_index() -> Response {
+    match posts::load_all_posts().await {
+        Ok(mut posts) => {
+            posts.sort_by(|a, b| b.created.cmp(&a.created)); // Newest first
+            pages::post_list_page(posts).into_response()
+        },
+        Err(err) => {
+            eprintln!("failed to load posts: {err:?}");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }
 
 #[derive(Deserialize)]

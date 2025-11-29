@@ -1,5 +1,6 @@
-use std::path::PathBuf;
+use std::{cmp::Ordering, path::PathBuf};
 
+use chrono::{DateTime, Utc};
 use pulldown_cmark::{html, Options, Parser};
 use tokio::fs;
 
@@ -10,6 +11,7 @@ pub struct Post {
     pub id: String,
     pub title: String,
     pub body_html: String,
+    pub created: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug)]
@@ -67,18 +69,25 @@ pub async fn load_all_posts() -> Result<Vec<Post>, PostError> {
         posts.push(parse_post(id, &markdown));
     }
 
-    posts.sort_by(|a, b| b.id.cmp(&a.id));
+    posts.sort_by(|a, b| match (&a.created, &b.created) {
+        (Some(a_date), Some(b_date)) => b_date.cmp(a_date),
+        (Some(_), None) => Ordering::Less,
+        (None, Some(_)) => Ordering::Greater,
+        (None, None) => b.id.cmp(&a.id),
+    });
     Ok(posts)
 }
 
 fn parse_post(id: String, markdown: &str) -> Post {
     let title = extract_title(markdown).unwrap_or_else(|| id.clone());
     let body_html = render_markdown(markdown);
+    let created = extract_created(markdown);
 
     Post {
         id,
         title,
         body_html,
+        created,
     }
 }
 
@@ -92,28 +101,39 @@ fn render_markdown(markdown: &str) -> String {
 }
 
 fn extract_title(md: &str) -> Option<String> {
+    extract_frontmatter_value(md, "title")
+}
+
+fn extract_created(md: &str) -> Option<DateTime<Utc>> {
+    let value = extract_frontmatter_value(md, "created")?;
+    chrono::DateTime::parse_from_rfc3339(&value)
+        .map(|dt| dt.with_timezone(&Utc))
+        .ok()
+}
+
+fn extract_frontmatter_value(md: &str, key: &str) -> Option<String> {
     let mut lines = md.lines();
     let first = lines.next()?;
     if first.trim() != "---" {
         return None;
     }
 
-    let mut title: Option<String> = None;
+    let search_key = format!("{key}:");
     for line in lines {
         let trimmed = line.trim_end();
         if trimmed == "---" {
             break;
         }
-        if let Some(rest) = trimmed.strip_prefix("title:") {
+        if let Some(rest) = trimmed.strip_prefix(&search_key) {
             let value = rest.trim();
             let value = value.trim_matches('"').trim_matches('\'');
             if !value.is_empty() {
-                title = Some(value.to_string());
+                return Some(value.to_string());
             }
         }
     }
 
-    title
+    None
 }
 
 fn post_path(id: &str) -> PathBuf {
