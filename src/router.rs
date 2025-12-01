@@ -1,37 +1,52 @@
-use crate::post::post_page;
-use crate::post_list::posts_page;
-use crate::templates::pages::{
-    home_page as home_template, login_page as login_template, logout_page as logout_template,
-    secret_page as secret_template,
-};
-use crate::write::{write_page, write_submit};
+use crate::posts::{self, load_post};
+use crate::templates::pages;
+use crate::write::{write_handler, write_submit};
+use axum::extract::Path;
 use axum::{
     Router,
     extract::{Form, FromRequestParts, Request},
     http::StatusCode,
     middleware::{Next, from_fn},
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
     routing::get,
 };
 use serde::Deserialize;
 use tower_sessions::Session;
 
-pub fn build_router() -> Router {
+pub async fn build_router() -> Router {
     Router::new()
         .route("/", get(root))
-        .route("/posts", get(posts_page))
-        .route("/post/{id}", get(post_page))
-        .route("/login", get(login_page).post(login_submit))
-        .route("/logout", get(logout))
+        .route("/posts", get(posts_index))
+        .route("/post/{id}", get(post_handler))
+        .route("/login", get(login_handler).post(login_submit))
+        .route("/logout", get(logout_handler))
         .route(
             "/write",
-            get(write_page).post(write_submit), // .route_layer(from_fn(require_auth)), //TODO add back auth
+            get(write_handler)
+                .post(write_submit)
+                .route_layer(from_fn(require_auth)),
         )
-        .route("/secret", get(secret).route_layer(from_fn(require_auth)))
 }
 
 async fn root() -> impl IntoResponse {
-    home_template()
+    Redirect::to("/posts")
+}
+
+async fn post_handler(Path(id): Path<String>) -> impl IntoResponse {
+    pages::post_page(load_post(&id).await.unwrap())
+}
+
+async fn posts_index() -> Response {
+    match posts::load_all_posts().await {
+        Ok(mut posts) => {
+            posts.sort_by(|a, b| b.created.cmp(&a.created)); // Newest first
+            pages::post_list_page(posts).into_response()
+        }
+        Err(err) => {
+            eprintln!("failed to load posts: {err:?}");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -54,18 +69,14 @@ async fn login_submit(session: Session, Form(payload): Form<LoginPayload>) -> im
     }
 }
 
-async fn logout(session: Session) -> impl IntoResponse {
+async fn logout_handler(session: Session) -> impl IntoResponse {
     let _ = session.flush().await;
-    logout_template()
+    pages::logout_page()
 }
 
-async fn login_page() -> impl IntoResponse {
-    login_template()
+async fn login_handler() -> impl IntoResponse {
+    pages::login_page()
 }
-
-async fn secret() -> impl IntoResponse {
-    secret_template()
-} //TODO remove
 
 async fn require_auth(req: Request, next: Next) -> Result<Response, StatusCode> {
     let (mut parts, body) = req.into_parts();

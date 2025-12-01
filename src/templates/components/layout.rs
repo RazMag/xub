@@ -1,6 +1,6 @@
 use maud::{Markup, html};
 
-use crate::templates::{footer::footer, navbar::navbar};
+use crate::templates::components::{footer::footer, navbar::navbar};
 
 pub fn layout(title: &str, content: Markup) -> Markup {
     html! {

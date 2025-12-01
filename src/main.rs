@@ -5,8 +5,7 @@ use axum::Router;
 use tokio::net::TcpListener;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 
-mod post;
-mod post_list;
+mod posts;
 mod router;
 mod templates;
 mod write;
@@ -14,7 +13,7 @@ mod write;
 #[tokio::main]
 async fn main() -> Result<()> {
     // Create the app router with routes defined in router module.
-    let app: Router = router::build_router();
+    let app: Router = router::build_router().await;
 
     // Session layer (MemoryStore for dev). with_secure(false) for HTTP during dev.
     let store = MemoryStore::default();

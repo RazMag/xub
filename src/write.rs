@@ -15,11 +15,11 @@ pub struct NewPost {
 #[derive(Serialize)]
 pub struct Frontmatter {
     pub title: String,
-    pub date: String,
+    pub created: String,
     pub id: String,
 }
 
-pub async fn write_page() -> impl IntoResponse {
+pub async fn write_handler() -> impl IntoResponse {
     write_template()
 }
 
@@ -30,19 +30,17 @@ pub async fn write_submit(_session: Session, Form(payload): Form<NewPost>) -> im
     let date = chrono::Utc::now();
     let frontmatter = Frontmatter {
         title: title.clone(),
-        date: date.to_rfc3339(),
+        created: date.to_rfc3339(),
         id: nanoid!(),
     };
-    let frontmatter = serde_saphyr::to_string(&frontmatter).unwrap();
-    let post = format!("---\n{}---\n{}", frontmatter, content);
-    save_post_to_file(&post).await.unwrap();
-    // For now, just acknowledge creation
+    let frontmatter_str = serde_saphyr::to_string(&frontmatter).unwrap();
+    let post = format!("---\n{}---\n{}", frontmatter_str, content);
+    save_post_to_file(&post, &frontmatter.id).await.unwrap();
     (StatusCode::CREATED, format!("Created post: {title}"))
 }
 
-async fn save_post_to_file(post: &str) -> Result<()> {
-    let filename = format!("posts/{}.md", chrono::Utc::now().format("%Y%m%d%H%M%S"));
-    let mut file = fs::File::create(&filename).await?;
+async fn save_post_to_file(post: &str, id: &str) -> Result<()> {
+    let mut file = fs::File::create(format!("./posts/{id}.md")).await?;
     file.write_all(post.as_bytes()).await?;
     Ok(())
 }

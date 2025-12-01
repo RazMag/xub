@@ -1,4 +1,2 @@
-pub mod footer;
-pub mod layout;
-pub mod navbar;
+mod components;
 pub mod pages;
