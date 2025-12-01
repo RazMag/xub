@@ -5,7 +5,6 @@ use axum::Router;
 use tokio::net::TcpListener;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 
-
 mod posts;
 mod router;
 mod templates;

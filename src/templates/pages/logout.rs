@@ -2,7 +2,6 @@ use maud::{Markup, html};
 
 use crate::templates::components::layout::layout;
 
-
 pub fn logout_page() -> Markup {
     layout(
         "Logged Out",

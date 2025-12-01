@@ -41,7 +41,7 @@ async fn posts_index() -> Response {
         Ok(mut posts) => {
             posts.sort_by(|a, b| b.created.cmp(&a.created)); // Newest first
             pages::post_list_page(posts).into_response()
-        },
+        }
         Err(err) => {
             eprintln!("failed to load posts: {err:?}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

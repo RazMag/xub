@@ -1,6 +1,5 @@
 use crate::posts::Post;
-use crate::templates::components::layout::layout;
-use crate::templates::components::post::post_component;
+use crate::templates::components::{layout::layout, post::post_component};
 use maud::{Markup, html};
 
 pub fn post_list_page(posts: Vec<Post>) -> Markup {

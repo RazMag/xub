@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, path::PathBuf};
 
 use chrono::{DateTime, Utc};
-use pulldown_cmark::{html, Options, Parser};
+use pulldown_cmark::{Options, Parser, html};
 use tokio::fs;
 
 const POSTS_DIR: &str = "./posts";
